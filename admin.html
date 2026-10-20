@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel · Marea Entrenamiento</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b1f3a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+  <style>
+    :root {
+      --azul-900: #071630;
+      --azul-800: #0b1f3a;
+      --azul-700: #12305a;
+      --azul-500: #1f5fbf;
+      --azul-100: #e8eff9;
+      --blanco:   #ffffff;
+      --gris-600: #5b6678;
+      --gris-300: #cfd7e3;
+      --fondo:    #f4f7fb;
+      --error:    #b42318;
+      --ok:       #137a4a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--fondo); color: var(--azul-800);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45;
+    }
+    button, input { font: inherit; }
+    header {
+      background: var(--azul-800); color: var(--blanco);
+      padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    header h1 { margin: 0; font-size: 18px; }
+    header button { background: transparent; color: var(--blanco); border: 1px solid rgba(255,255,255,.4); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+    main { max-width: 760px; margin: 0 auto; padding: 16px; }
+    [hidden] { display: none !important; }
+
+    .tarjeta { background: var(--blanco); border-radius: 14px; box-shadow: 0 6px 20px rgba(7,22,48,.08); padding: 18px 16px; }
+    .login { max-width: 380px; margin: 40px auto; }
+    .login h2 { margin-top: 0; }
+    form { display: grid; gap: 12px; }
+    label { display: grid; gap: 4px; font-weight: 600; font-size: 14px; }
+    input { padding: 12px; border: 1.5px solid var(--gris-300); border-radius: 10px; font-size: 16px; width: 100%; }
+    .btn { cursor: pointer; border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 700; background: var(--azul-800); color: var(--blanco); }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn.verde { background: var(--ok); }
+    .btn.rojo { background: var(--error); }
+    .btn.borde { background: var(--blanco); color: var(--azul-800); border: 1.5px solid var(--gris-300); }
+    .aviso { padding: 10px 12px; border-radius: 10px; font-size: 14px; margin: 0 0 12px; }
+    .aviso.error { background: #fdecea; color: var(--error); }
+
+    .pestanas { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; }
+    .pestana {
+      flex: none; cursor: pointer; border: 1.5px solid var(--gris-300); background: var(--blanco); color: var(--azul-800);
+      border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px;
+    }
+    .pestana[aria-selected="true"] { background: var(--azul-800); border-color: var(--azul-800); color: var(--blanco); }
+    .pestana .cuenta { display: inline-block; min-width: 20px; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: #f59e0b; color: #000; font-size: 12px; }
+
+    .lista { display: grid; gap: 10px; }
+    .item { background: var(--blanco); border-radius: 12px; box-shadow: 0 3px 12px rgba(7,22,48,.06); padding: 14px; border-left: 5px solid var(--gris-300); }
+    .item.pendiente { border-left-color: #f59e0b; }
+    .item.aceptada  { border-left-color: var(--ok); }
+    .item.rechazada, .item.cancelada { border-left-color: #9aa4b2; opacity: .85; }
+    .item h3 { margin: 0 0 2px; font-size: 16px; }
+    .item .cuando { font-weight: 700; color: var(--azul-500); margin: 0 0 8px; }
+    .item dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0 0 10px; font-size: 14px; }
+    .item dt { color: var(--gris-600); }
+    .item dd { margin: 0; overflow-wrap: anywhere; }
+    .item a { color: var(--azul-500); }
+    .estado { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--azul-100); text-transform: uppercase; letter-spacing: .04em; }
+    .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+    .vacio { text-align: center; color: var(--gris-600); padding: 30px 0; }
+    .pie { text-align: center; font-size: 12px; color: var(--gris-600); margin-top: 16px; }
+
+    /* Confirmación dentro de la página */
+    .fondo-modal { position: fixed; inset: 0; background: rgba(7,22,48,.55); display: grid; place-items: center; padding: 16px; z-index: 10; }
+    .modal { background: var(--blanco); border-radius: 14px; padding: 20px; max-width: 380px; width: 100%; }
+    .modal h3 { margin: 0 0 8px; }
+    .modal p { margin: 0 0 16px; color: var(--gris-600); }
+    .modal .acciones { justify-content: flex-end; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌊 Panel · Marea Entrenamiento</h1>
+    <button type="button" id="salir" hidden>Salir</button>
+  </header>
+
+  <main>
+    <p class="aviso error" id="aviso-config" hidden>Falta conectar Supabase: pon SUPABASE_URL y SUPABASE_KEY en admin.html.</p>
+
+    <!-- Ingreso -->
+    <section class="tarjeta login" id="vista-login" hidden>
+      <h2>Ingresar</h2>
+      <form id="form-login">
+        <label>Correo <input type="email" name="email" autocomplete="username" required></label>
+        <label>Contraseña <input type="password" name="password" autocomplete="current-password" required></label>
+        <p class="aviso error" id="error-login" hidden></p>
+        <button class="btn" type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <!-- Sin permiso -->
+    <section class="tarjeta login" id="vista-sin-acceso" hidden>
+      <h2>No tienes acceso</h2>
+      <p>Esta cuenta no es de un entrenador.</p>
+      <button class="btn borde" type="button" id="salir-2">Salir</button>
+    </section>
+
+    <!-- Panel -->
+    <section id="vista-panel" hidden>
+      <div class="pestanas" role="tablist">
+        <button class="pestana" role="tab" data-tab="pendientes" aria-selected="true">Pendientes <span class="cuenta" id="cuenta-pend">0</span></button>
+        <button class="pestana" role="tab" data-tab="proximas" aria-selected="false">Próximas aceptadas</button>
+        <button class="pestana" role="tab" data-tab="historial" aria-selected="false">Historial</button>
+      </div>
+      <p class="aviso error" id="error-panel" hidden></p>
+      <div class="lista" id="lista"></div>
+      <p class="pie" id="actualizado"></p>
+    </section>
+  </main>
+
+  <div class="fondo-modal" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+      <h3 id="modal-titulo"></h3>
+      <p id="modal-texto"></p>
+      <div class="acciones">
+        <button class="btn borde" type="button" id="modal-no">Volver</button>
+        <button class="btn" type="button" id="modal-si">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script>
+    // Mismos datos que en index.html (la clave PUBLISHABLE, nunca la secret)
+    const SUPABASE_URL = "";
+    const SUPABASE_KEY = "";
+    const ZONA = "America/Bogota";
+    const TITULO = "Panel · Marea Entrenamiento";
+
+    const sb = SUPABASE_URL && SUPABASE_KEY && window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+      : null;
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const fmtFecha = new Intl.DateTimeFormat("es-CO", { timeZone: ZONA, weekday: "short", day: "numeric", month: "short" });
+    const fmtHora  = new Intl.DateTimeFormat("es-CO", { timeZone: ZONA, hour: "numeric", minute: "2-digit", hour12: true });
+    const cuando = (r) => `${fmtFecha.format(new Date(r.inicio))} · ${fmtHora.format(new Date(r.inicio))} – ${fmtHora.format(new Date(r.fin))}`;
+    const soloDigitos = (t) => String(t || "").replace(/\D/g, "");
+    // Celulares colombianos de 10 dígitos que empiezan por 3 → agrega el 57
+    const numeroWhatsApp = (t) => { const d = soloDigitos(t); return d.length === 10 && d.startsWith("3") ? "57" + d : d; };
+
+    let tab = "pendientes";
+    let reservas = [];
+    let temporizador = null;
+
+    function vista(nombre) {
+      ["vista-login", "vista-sin-acceso", "vista-panel"].forEach((v) => $(v).hidden = v !== nombre);
+      $("salir").hidden = nombre !== "vista-panel";
+    }
+
+    // ---------- Sesión ----------
+    async function iniciar() {
+      if (!sb) { $("aviso-config").hidden = false; vista("vista-login"); return; }
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { vista("vista-login"); return; }
+      const { data: esAdmin, error } = await sb.rpc("es_admin");
+      if (error || !esAdmin) { vista("vista-sin-acceso"); return; }
+      vista("vista-panel");
+      await cargar();
+      clearInterval(temporizador);
+      temporizador = setInterval(cargar, 30000);
+    }
+
+    $("form-login").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      $("error-login").hidden = true;
+      if (!sb) { $("error-login").textContent = "Falta conectar Supabase."; $("error-login").hidden = false; return; }
+      const btn = f.querySelector("button");
+      btn.disabled = true;
+      const { error } = await sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value });
+      btn.disabled = false;
+      if (error) {
+        $("error-login").textContent = "Correo o contraseña incorrectos.";
+        $("error-login").hidden = false;
+        return;
+      }
+      f.reset();
+      iniciar();
+    });
+
+    async function salir() {
+      clearInterval(temporizador);
+      await sb?.auth.signOut();
+      document.title = TITULO;
+      vista("vista-login");
+    }
+    $("salir").addEventListener("click", salir);
+    $("salir-2").addEventListener("click", salir);
+
+    // ---------- Datos ----------
+    async function cargar() {
+      const { data, error } = await sb.from("reservas")
+        .select("id, sesion_nombre, inicio, fin, nombre, email, telefono, nota, estado, creado_en")
+        .order("inicio", { ascending: true })
+        .limit(500);
+      if (error) {
+        $("error-panel").textContent = "No se pudieron cargar las reservas: " + error.message;
+        $("error-panel").hidden = false;
+        return;
+      }
+      $("error-panel").hidden = true;
+      reservas = data;
+      const pendientes = reservas.filter((r) => r.estado === "pendiente").length;
+      $("cuenta-pend").textContent = pendientes;
+      document.title = pendientes ? `(${pendientes}) ${TITULO}` : TITULO;
+      $("actualizado").textContent = "Actualizado " + fmtHora.format(new Date()) + " · se actualiza solo cada 30 segundos";
+      pintar();
+    }
+
+    function filtrar() {
+      const ahora = new Date();
+      if (tab === "pendientes") return reservas.filter((r) => r.estado === "pendiente");
+      if (tab === "proximas") return reservas.filter((r) => r.estado === "aceptada" && new Date(r.fin) >= ahora);
+      return reservas
+        .filter((r) => r.estado === "rechazada" || r.estado === "cancelada" || (r.estado === "aceptada" && new Date(r.fin) < ahora))
+        .sort((a, b) => new Date(b.inicio) - new Date(a.inicio));
+    }
+
+    function pintar() {
+      const lista = filtrar();
+      if (!lista.length) {
+        const textos = { pendientes: "No hay solicitudes pendientes 🎉", proximas: "No hay sesiones aceptadas próximas.", historial: "Todavía no hay historial." };
+        $("lista").innerHTML = `<p class="vacio">${textos[tab]}</p>`;
+        return;
+      }
+      $("lista").innerHTML = lista.map((r) => {
+        const wa = numeroWhatsApp(r.telefono);
+        const botones = r.estado === "pendiente"
+          ? `<button class="btn verde" data-accion="aceptada" data-id="${r.id}">Aceptar</button>
+             <button class="btn rojo" data-accion="rechazada" data-id="${r.id}">Rechazar</button>`
+          : (r.estado === "aceptada" && new Date(r.fin) >= new Date())
+            ? `<button class="btn borde" data-accion="cancelada" data-id="${r.id}">Cancelar</button>`
+            : "";
+        return `
+          <article class="item ${esc(r.estado)}">
+            <h3>${esc(r.sesion_nombre)} <span class="estado">${esc(r.estado)}</span></h3>
+            <p class="cuando">${esc(cuando(r))}</p>
+            <dl>
+              <dt>Nombre</dt><dd>${esc(r.nombre)}</dd>
+              <dt>Correo</dt><dd><a href="mailto:${esc(r.email)}">${esc(r.email)}</a></dd>
+              <dt>Celular</dt><dd>${wa ? `<a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">${esc(r.telefono)}</a>` : "—"}</dd>
+              ${r.nota ? `<dt>Nota</dt><dd>${esc(r.nota)}</dd>` : ""}
+              <dt>Solicitud</dt><dd>#${esc(r.id)}</dd>
+            </dl>
+            ${botones ? `<div class="acciones">${botones}</div>` : ""}
+          </article>`;
+      }).join("");
+    }
+
+    document.querySelector(".pestanas").addEventListener("click", (e) => {
+      const b = e.target.closest(".pestana");
+      if (!b) return;
+      tab = b.dataset.tab;
+      document.querySelectorAll(".pestana").forEach((p) => p.setAttribute("aria-selected", String(p === b)));
+      pintar();
+    });
+
+    // ---------- Aceptar / Rechazar / Cancelar ----------
+    const TEXTOS = {
+      aceptada:  { titulo: "¿Aceptar esta reserva?",  texto: "Se crea el evento en tu Google Calendar y al cliente le llega la invitación.", boton: "Sí, aceptar", clase: "btn verde" },
+      rechazada: { titulo: "¿Rechazar esta solicitud?", texto: "Al cliente le llega un correo para que elija otra hora.", boton: "Sí, rechazar", clase: "btn rojo" },
+      cancelada: { titulo: "¿Cancelar esta sesión?", texto: "Se borra el evento de tu calendario y al cliente le llega un correo.", boton: "Sí, cancelar", clase: "btn rojo" }
+    };
+    let pendienteDeConfirmar = null;
+
+    $("lista").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-accion]");
+      if (!b) return;
+      const r = reservas.find((x) => String(x.id) === b.dataset.id);
+      const t = TEXTOS[b.dataset.accion];
+      pendienteDeConfirmar = { id: r.id, estado: b.dataset.accion };
+      $("modal-titulo").textContent = t.titulo;
+      $("modal-texto").textContent = `${r.sesion_nombre} · ${cuando(r)} · ${r.nombre}. ${t.texto}`;
+      $("modal-si").textContent = t.boton;
+      $("modal-si").className = t.clase;
+      $("modal").hidden = false;
+      $("modal-si").focus();
+    });
+
+    function cerrarModal() { $("modal").hidden = true; pendienteDeConfirmar = null; }
+    $("modal-no").addEventListener("click", cerrarModal);
+    $("modal").addEventListener("click", (e) => { if (e.target === $("modal")) cerrarModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("modal").hidden) cerrarModal(); });
+
+    $("modal-si").addEventListener("click", async () => {
+      if (!pendienteDeConfirmar) return;
+      const { id, estado } = pendienteDeConfirmar;
+      $("modal-si").disabled = true;
+      const { error } = await sb.from("reservas").update({ estado }).eq("id", id);
+      $("modal-si").disabled = false;
+      cerrarModal();
+      if (error) {
+        const msg = error.code === "23P01" ? "Esa hora se cruza con otra reserva activa." : error.message;
+        $("error-panel").textContent = "No se pudo cambiar: " + msg;
+        $("error-panel").hidden = false;
+      }
+      await cargar();
+    });
+
+    sb?.auth.onAuthStateChange((evento) => { if (evento === "SIGNED_OUT") vista("vista-login"); });
+    iniciar();
+  </script>
+</body>
+</html>

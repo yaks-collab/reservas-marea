@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marea Entrenamiento · Reserva tu sesión</title>
+  <meta name="description" content="Reserva tu sesión de entrenamiento personal, funcional, running o movilidad en Medellín.">
+  <meta name="theme-color" content="#0b1f3a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+  <style>
+    :root {
+      --azul-900: #071630;
+      --azul-800: #0b1f3a;
+      --azul-700: #12305a;
+      --azul-500: #1f5fbf;
+      --azul-100: #e8eff9;
+      --blanco:   #ffffff;
+      --gris-600: #5b6678;
+      --gris-300: #cfd7e3;
+      --fondo:    #f4f7fb;
+      --error:    #b42318;
+      --ok:       #137a4a;
+      --radio:    14px;
+      --sombra:   0 6px 20px rgba(7, 22, 48, .08);
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--fondo);
+      color: var(--azul-800);
+      line-height: 1.45;
+    }
+    button, input, textarea { font: inherit; }
+
+    /* Encabezado */
+    header {
+      background: linear-gradient(160deg, var(--azul-900), var(--azul-700));
+      color: var(--blanco);
+      padding: 36px 16px 56px;
+      text-align: center;
+    }
+    header .logo { font-size: 13px; letter-spacing: .18em; text-transform: uppercase; opacity: .75; margin: 0 0 6px; }
+    header h1 { margin: 0; font-size: clamp(28px, 7vw, 40px); line-height: 1.1; }
+    header .eslogan { margin: 10px 0 4px; font-size: 17px; }
+    header .lugar { margin: 0; font-size: 14px; opacity: .8; }
+
+    main { max-width: 720px; margin: -32px auto 0; padding: 0 16px 40px; }
+
+    .paso {
+      background: var(--blanco);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+      padding: 20px 16px;
+      margin-bottom: 16px;
+    }
+    .paso h2 { margin: 0 0 14px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .num {
+      display: inline-grid; place-items: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--azul-800); color: var(--blanco); font-size: 14px; flex: none;
+    }
+    .paso.bloqueado { opacity: .5; pointer-events: none; }
+    .ayuda { color: var(--gris-600); font-size: 14px; margin: 0; }
+
+    /* Sesiones */
+    .sesiones { display: grid; gap: 10px; }
+    @media (min-width: 560px) { .sesiones { grid-template-columns: 1fr 1fr; } }
+    .sesion {
+      text-align: left; cursor: pointer;
+      border: 2px solid var(--gris-300); border-radius: 12px;
+      background: var(--blanco); color: inherit;
+      padding: 14px; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .sesion:hover { border-color: var(--azul-500); }
+    .sesion[aria-pressed="true"] { border-color: var(--azul-800); background: var(--azul-100); }
+    .sesion .emoji { font-size: 28px; line-height: 1; }
+    .sesion strong { display: block; font-size: 16px; }
+    .sesion .desc { display: block; color: var(--gris-600); font-size: 14px; margin: 2px 0 6px; }
+    .sesion .meta { font-size: 14px; font-weight: 600; color: var(--azul-700); }
+
+    /* Días */
+    .dias {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;
+      scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    }
+    .dia {
+      flex: none; scroll-snap-align: start; cursor: pointer;
+      min-width: 74px; padding: 10px 8px; text-align: center;
+      border: 2px solid var(--gris-300); border-radius: 12px;
+      background: var(--blanco); color: inherit;
+    }
+    .dia span { display: block; font-size: 13px; color: var(--gris-600); }
+    .dia b { display: block; font-size: 20px; }
+    .dia[aria-pressed="true"] { background: var(--azul-800); border-color: var(--azul-800); color: var(--blanco); }
+    .dia[aria-pressed="true"] span { color: var(--azul-100); }
+
+    /* Horas */
+    .horas { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+    .hora {
+      cursor: pointer; padding: 10px 6px;
+      border: 2px solid var(--gris-300); border-radius: 10px;
+      background: var(--blanco); color: inherit; font-weight: 600;
+    }
+    .hora:hover:not(:disabled) { border-color: var(--azul-500); }
+    .hora[aria-pressed="true"] { background: var(--azul-800); border-color: var(--azul-800); color: var(--blanco); }
+    .hora:disabled { cursor: not-allowed; text-decoration: line-through; color: #9aa4b2; background: #f1f3f6; border-color: #e3e7ed; }
+
+    /* Formulario */
+    form { display: grid; gap: 12px; }
+    label { font-weight: 600; font-size: 14px; display: grid; gap: 4px; }
+    label small { font-weight: 400; color: var(--gris-600); }
+    input[type=text], input[type=email], input[type=tel], textarea {
+      width: 100%; padding: 12px; border-radius: 10px;
+      border: 1.5px solid var(--gris-300); background: var(--blanco); color: inherit;
+      font-size: 16px; /* evita zoom en iPhone */
+    }
+    input:focus, textarea:focus, button:focus-visible { outline: 3px solid rgba(31, 95, 191, .35); outline-offset: 1px; }
+    textarea { min-height: 80px; resize: vertical; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; font-size: 13px; color: var(--gris-600); }
+    .check input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+
+    .resumen {
+      background: var(--azul-100); border-radius: 10px; padding: 12px 14px;
+      font-weight: 600; color: var(--azul-800);
+    }
+    .btn {
+      cursor: pointer; border: 0; border-radius: 12px;
+      padding: 15px 18px; font-size: 17px; font-weight: 700;
+      background: var(--azul-800); color: var(--blanco); width: 100%;
+    }
+    .btn:hover { background: var(--azul-700); }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn.secundario { background: var(--blanco); color: var(--azul-800); border: 2px solid var(--azul-800); }
+    .btn.whatsapp { background: #128c4a; }
+
+    .aviso { padding: 12px 14px; border-radius: 10px; font-size: 14px; margin: 0 0 12px; }
+    .aviso.error { background: #fdecea; color: var(--error); }
+    .aviso.info  { background: var(--azul-100); color: var(--azul-700); }
+    [hidden] { display: none !important; }
+
+    /* Éxito */
+    .exito { text-align: center; padding: 32px 18px; }
+    .exito .icono { font-size: 52px; }
+    .exito h2 { justify-content: center; font-size: 24px; }
+    .exito p { margin: 0 0 18px; }
+    .exito .acciones { display: grid; gap: 10px; max-width: 360px; margin: 0 auto; }
+
+    footer {
+      background: var(--azul-900); color: var(--azul-100);
+      text-align: center; padding: 22px 16px; font-size: 13px;
+    }
+    footer a { color: var(--azul-100); opacity: .55; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="logo">Marea Entrenamiento</p>
+    <h1>Reserva tu sesión</h1>
+    <p class="eslogan">Entrena con constancia en Medellín 🌊</p>
+    <p class="lugar">📍 Medellín · Parque de El Poblado o a domicilio · Lun a sáb, 8:00 a. m. – 5:00 p. m.</p>
+  </header>
+
+  <main>
+    <p class="aviso info" id="aviso-config" hidden>
+      Modo vista previa: la base de datos todavía no está conectada, así que no se pueden enviar solicitudes.
+    </p>
+
+    <div id="reserva">
+      <section class="paso" id="paso-1">
+        <h2><span class="num">1</span> Elige tu sesión</h2>
+        <div class="sesiones" id="sesiones"><p class="ayuda">Cargando sesiones…</p></div>
+      </section>
+
+      <section class="paso bloqueado" id="paso-2">
+        <h2><span class="num">2</span> Elige el día</h2>
+        <div class="dias" id="dias"></div>
+      </section>
+
+      <section class="paso bloqueado" id="paso-3">
+        <h2><span class="num">3</span> Elige la hora</h2>
+        <div class="horas" id="horas"><p class="ayuda">Primero elige un día.</p></div>
+        <p class="ayuda" style="margin-top:10px">Horas de Colombia. Las tachadas ya están ocupadas o son muy pronto (mínimo 12 horas de anticipación).</p>
+      </section>
+
+      <section class="paso bloqueado" id="paso-4">
+        <h2><span class="num">4</span> Tus datos</h2>
+        <form id="form" novalidate>
+          <label>Nombre completo
+            <input type="text" name="nombre" autocomplete="name" required maxlength="100">
+          </label>
+          <label>Correo <small>Ahí te llega la confirmación y la invitación al calendario</small>
+            <input type="email" name="email" autocomplete="email" required maxlength="200">
+          </label>
+          <label>Celular <small>Para avisarte si hay algún cambio</small>
+            <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" required maxlength="30" placeholder="300 123 4567">
+          </label>
+          <label>Nota <small>(opcional) Objetivo, lesiones, dirección si es a domicilio…</small>
+            <textarea name="nota" maxlength="500"></textarea>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="autorizo" required>
+            <span>Autorizo a Marea Entrenamiento a guardar mi nombre, correo y celular solo para gestionar esta reserva y contactarme sobre ella, según la Ley 1581 de 2012 (habeas data). Puedo pedir que los borren escribiendo a yaku.kolke@gmail.com.</span>
+          </label>
+
+          <div class="resumen" id="resumen" hidden></div>
+          <p class="aviso error" id="error" role="alert" hidden></p>
+          <button class="btn" type="submit" id="enviar">Solicitar reserva</button>
+        </form>
+      </section>
+    </div>
+
+    <section class="paso exito" id="exito" hidden>
+      <div class="icono">✅</div>
+      <h2>¡Solicitud enviada!</h2>
+      <p>Te llegará un correo cuando Yaku la confirme.</p>
+      <p class="resumen" id="exito-resumen"></p>
+      <div class="acciones">
+        <a class="btn whatsapp" id="btn-whatsapp" target="_blank" rel="noopener" style="text-decoration:none">Avisar por WhatsApp</a>
+        <button class="btn secundario" type="button" id="otra">Hacer otra reserva</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Marea Entrenamiento · Medellín · Coach Yaku</p>
+    <a href="admin.html">Panel del entrenador</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script>
+    // =================================================================
+    // CONFIGURACIÓN
+    // La clave PUBLISHABLE (sb_publishable_...) es pública: puede ir aquí.
+    // La seguridad la dan las reglas de supabase.sql. NUNCA pongas la secret.
+    // =================================================================
+    const SUPABASE_URL = "";   // ej. https://xxxxx.supabase.co
+    const SUPABASE_KEY = "";   // ej. sb_publishable_...
+
+    const NEGOCIO = {
+      nombre: "Marea Entrenamiento",
+      entrenador: "Yaku",
+      whatsapp: "41783011397",        // código de país + número, sin + ni espacios
+      zona: "America/Bogota",
+      offset: "-05:00",               // Colombia no tiene horario de verano
+      dias: [1, 2, 3, 4, 5, 6],       // 0 = domingo … 6 = sábado
+      apertura: 8 * 60,               // 8:00 a. m. (en minutos)
+      cierre: 17 * 60,                // 5:00 p. m.
+      cadaMin: 60,                    // cada cuánto empieza una sesión
+      minHoras: 12,                   // anticipación mínima
+      maxDias: 21                     // hasta cuántos días hacia adelante
+    };
+
+    // Solo para la vista previa mientras no hay base de datos.
+    const SESIONES_EJEMPLO = [
+      { id: 1, nombre: "Entrenamiento personal",   descripcion: "Sesión 1 a 1 adaptada a tu objetivo.",      duracion_min: 60, precio: 80000,  emoji: "🏋️" },
+      { id: 2, nombre: "Funcional en pareja",      descripcion: "Entrena con un amigo y dividan el precio.", duracion_min: 60, precio: 120000, emoji: "🤸" },
+      { id: 3, nombre: "Running técnico",          descripcion: "Técnica de carrera, ritmo y respiración.",  duracion_min: 45, precio: 60000,  emoji: "🏃" },
+      { id: 4, nombre: "Movilidad y estiramiento", descripcion: "Recupera, gana rango y evita lesiones.",    duracion_min: 45, precio: 50000,  emoji: "🧘" }
+    ];
+
+    const sb = SUPABASE_URL && SUPABASE_KEY && window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+      : null;
+
+    // ---------- Utilidades ----------
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const pesos = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+    const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+    // Fecha de hoy en Colombia como "AAAA-MM-DD", sin importar la zona del celular
+    function hoyEnNegocio() {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: NEGOCIO.zona, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    }
+    // Suma días a "AAAA-MM-DD" y devuelve { iso, dow, dia, mes }
+    function sumarDias(iso, n) {
+      const [a, m, d] = iso.split("-").map(Number);
+      const f = new Date(Date.UTC(a, m - 1, d + n));
+      return {
+        iso: f.toISOString().slice(0, 10),
+        dow: f.getUTCDay(),
+        dia: f.getUTCDate(),
+        mes: f.getUTCMonth()
+      };
+    }
+    function etiquetaDia(d) { return `${DIAS[d.dow]} ${d.dia} ${MESES[d.mes]}`; }
+    function etiquetaHora(min) {
+      const h = Math.floor(min / 60), m = min % 60;
+      const h12 = ((h + 11) % 12) + 1;
+      return `${h12}:${String(m).padStart(2, "0")} ${h < 12 ? "a. m." : "p. m."}`;
+    }
+    // "AAAA-MM-DD" + minutos del día → Date real (hora de Colombia)
+    function aFecha(iso, min) {
+      const hh = String(Math.floor(min / 60)).padStart(2, "0");
+      const mm = String(min % 60).padStart(2, "0");
+      return new Date(`${iso}T${hh}:${mm}:00${NEGOCIO.offset}`);
+    }
+
+    // ---------- Estado ----------
+    let sesiones = [];
+    let ocupadas = [];          // [{ inicio: Date, fin: Date }]
+    const sel = { sesion: null, dia: null, hora: null };
+
+    // ---------- Paso 1: sesiones ----------
+    async function cargarSesiones() {
+      if (!sb) {
+        $("aviso-config").hidden = false;
+        sesiones = SESIONES_EJEMPLO;
+      } else {
+        const { data, error } = await sb.from("sesiones")
+          .select("id, nombre, descripcion, duracion_min, precio, emoji")
+          .order("orden");
+        if (error) {
+          $("sesiones").innerHTML = `<p class="aviso error">No pudimos cargar las sesiones. Recarga la página.</p>`;
+          return;
+        }
+        sesiones = data;
+      }
+      pintarSesiones();
+    }
+
+    function pintarSesiones() {
+      $("sesiones").innerHTML = sesiones.map((s) => `
+        <button type="button" class="sesion" data-id="${s.id}" aria-pressed="${sel.sesion?.id === s.id}">
+          <span class="emoji" aria-hidden="true">${esc(s.emoji)}</span>
+          <span>
+            <strong>${esc(s.nombre)}</strong>
+            <span class="desc">${esc(s.descripcion)}</span>
+            <span class="meta">${esc(s.duracion_min)} min · ${esc(pesos.format(s.precio))}</span>
+          </span>
+        </button>`).join("");
+    }
+
+    $("sesiones").addEventListener("click", (e) => {
+      const b = e.target.closest(".sesion");
+      if (!b) return;
+      sel.sesion = sesiones.find((s) => String(s.id) === b.dataset.id);
+      sel.hora = null;
+      pintarSesiones();
+      $("paso-2").classList.remove("bloqueado");
+      pintarHoras();
+      actualizarResumen();
+      if (!sel.dia) $("paso-2").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // ---------- Paso 2: días ----------
+    function proximosDias() {
+      const hoy = hoyEnNegocio();
+      const lista = [];
+      for (let i = 0; i <= NEGOCIO.maxDias; i++) {
+        const d = sumarDias(hoy, i);
+        if (NEGOCIO.dias.includes(d.dow)) lista.push(d);
+      }
+      return lista;
+    }
+
+    function pintarDias() {
+      $("dias").innerHTML = proximosDias().map((d) => `
+        <button type="button" class="dia" data-iso="${d.iso}" aria-pressed="${sel.dia?.iso === d.iso}">
+          <span>${DIAS[d.dow]}</span><b>${d.dia}</b><span>${MESES[d.mes]}</span>
+        </button>`).join("");
+    }
+
+    $("dias").addEventListener("click", async (e) => {
+      const b = e.target.closest(".dia");
+      if (!b) return;
+      sel.dia = proximosDias().find((d) => d.iso === b.dataset.iso);
+      sel.hora = null;
+      pintarDias();
+      $("paso-3").classList.remove("bloqueado");
+      pintarHoras();
+      actualizarResumen();
+      await cargarOcupadas();
+      pintarHoras();
+    });
+
+    // ---------- Paso 3: horas ----------
+    async function cargarOcupadas() {
+      if (!sb) return;
+      const desde = new Date();
+      const hasta = new Date(Date.now() + (NEGOCIO.maxDias + 1) * 86400000);
+      const { data, error } = await sb.rpc("horas_ocupadas", { desde: desde.toISOString(), hasta: hasta.toISOString() });
+      if (!error && Array.isArray(data)) {
+        ocupadas = data.map((r) => ({ inicio: new Date(r.inicio), fin: new Date(r.fin) }));
+      }
+    }
+
+    function horasDelDia() {
+      if (!sel.sesion || !sel.dia) return [];
+      const dur = sel.sesion.duracion_min;
+      const limite = Date.now() + NEGOCIO.minHoras * 3600000;
+      const max = Date.now() + NEGOCIO.maxDias * 86400000;
+      const lista = [];
+      for (let m = NEGOCIO.apertura; m + dur <= NEGOCIO.cierre; m += NEGOCIO.cadaMin) {
+        const ini = aFecha(sel.dia.iso, m);
+        const fin = new Date(ini.getTime() + dur * 60000);
+        const cruza = ocupadas.some((o) => ini < o.fin && fin > o.inicio);
+        const fueraDeTiempo = ini.getTime() < limite || ini.getTime() > max;
+        lista.push({ min: m, libre: !cruza && !fueraDeTiempo });
+      }
+      return lista;
+    }
+
+    function pintarHoras() {
+      if (!sel.dia) return;
+      if (!sel.sesion) { $("horas").innerHTML = `<p class="ayuda">Primero elige una sesión.</p>`; return; }
+      const horas = horasDelDia();
+      if (sel.hora != null && !horas.find((h) => h.min === sel.hora && h.libre)) sel.hora = null;
+      const hayLibres = horas.some((h) => h.libre);
+      $("horas").innerHTML = horas.map((h) => `
+        <button type="button" class="hora" data-min="${h.min}" ${h.libre ? "" : "disabled"}
+                aria-pressed="${sel.hora === h.min}">${etiquetaHora(h.min)}</button>`).join("")
+        + (hayLibres ? "" : `<p class="ayuda" style="grid-column:1/-1">No quedan horas libres este día. Prueba con otro.</p>`);
+      $("paso-4").classList.toggle("bloqueado", sel.hora == null);
+    }
+
+    $("horas").addEventListener("click", (e) => {
+      const b = e.target.closest(".hora");
+      if (!b || b.disabled) return;
+      sel.hora = Number(b.dataset.min);
+      pintarHoras();
+      actualizarResumen();
+      $("paso-4").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // ---------- Paso 4: resumen y envío ----------
+    function textoResumen() {
+      const s = sel.sesion;
+      return `${s.nombre} · ${etiquetaDia(sel.dia)} · ${etiquetaHora(sel.hora)} · ${s.duracion_min} min · ${pesos.format(s.precio)}`;
+    }
+    function actualizarResumen() {
+      const listo = sel.sesion && sel.dia && sel.hora != null;
+      $("resumen").hidden = !listo;
+      if (listo) $("resumen").textContent = textoResumen();
+    }
+    function mostrarError(msg) {
+      $("error").textContent = msg;
+      $("error").hidden = !msg;
+    }
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      mostrarError("");
+      const f = e.target;
+      const datos = {
+        nombre: f.nombre.value.trim(),
+        email: f.email.value.trim(),
+        telefono: f.telefono.value.trim(),
+        nota: f.nota.value.trim()
+      };
+      if (!sel.sesion || !sel.dia || sel.hora == null) return mostrarError("Elige la sesión, el día y la hora.");
+      if (datos.nombre.length < 2) return mostrarError("Escribe tu nombre.");
+      if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(datos.email)) return mostrarError("Revisa tu correo: ahí te llega la confirmación.");
+      if (datos.telefono.replace(/\D/g, "").length < 7) return mostrarError("Escribe tu número de celular.");
+      if (!f.autorizo.checked) return mostrarError("Para continuar, marca la autorización de datos.");
+      if (!sb) return mostrarError("Esta es una vista previa: la base de datos todavía no está conectada.");
+
+      const btn = $("enviar");
+      btn.disabled = true;
+      btn.textContent = "Enviando…";
+      const inicio = aFecha(sel.dia.iso, sel.hora);
+      const { data: id, error } = await sb.rpc("solicitar_reserva", {
+        p_sesion_id: sel.sesion.id,
+        p_inicio: inicio.toISOString(),
+        p_nombre: datos.nombre,
+        p_email: datos.email,
+        p_telefono: datos.telefono,
+        p_nota: datos.nota
+      });
+      btn.disabled = false;
+      btn.textContent = "Solicitar reserva";
+
+      if (error) {
+        mostrarError(error.message || "No se pudo enviar. Intenta de nuevo.");
+        await cargarOcupadas();
+        pintarHoras();
+        actualizarResumen();
+        return;
+      }
+      mostrarExito(id, datos);
+    });
+
+    function mostrarExito(id, datos) {
+      const resumen = textoResumen();
+      $("exito-resumen").textContent = `Solicitud #${id} · ${resumen}`;
+      const msg =
+        `¡Hola ${NEGOCIO.entrenador}! Acabo de enviar una solicitud de reserva en ${NEGOCIO.nombre}.\n\n` +
+        `Solicitud #${id}\n` +
+        `Sesión: ${sel.sesion.nombre}\n` +
+        `Fecha: ${etiquetaDia(sel.dia)}\n` +
+        `Hora: ${etiquetaHora(sel.hora)}\n` +
+        `Nombre: ${datos.nombre}\n` +
+        `Celular: ${datos.telefono}`;
+      $("btn-whatsapp").href = `https://wa.me/${NEGOCIO.whatsapp}?text=${encodeURIComponent(msg)}`;
+      $("reserva").hidden = true;
+      $("exito").hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    $("otra").addEventListener("click", async () => {
+      sel.sesion = null; sel.dia = null; sel.hora = null;
+      $("form").reset();
+      mostrarError("");
+      ["paso-2", "paso-3", "paso-4"].forEach((p) => $(p).classList.add("bloqueado"));
+      $("horas").innerHTML = `<p class="ayuda">Primero elige un día.</p>`;
+      $("exito").hidden = true;
+      $("reserva").hidden = false;
+      pintarSesiones(); pintarDias(); actualizarResumen();
+      await cargarOcupadas();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // ---------- Inicio ----------
+    pintarDias();
+    cargarSesiones();
+    cargarOcupadas();
+  </script>
+</body>
+</html>
