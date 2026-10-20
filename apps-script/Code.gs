@@ -15,7 +15,7 @@
 const CONFIG = {
   NEGOCIO: 'Marea Entrenamiento',
   ENTRENADOR: 'Yaku',
-  CORREO_ENTRENADOR: 'yaku.kolke@gmail.com',
+  CORREO_ENTRENADOR: 'yaku.colque@gmail.com',
   WHATSAPP: '41783011397',
   ZONA: 'America/Bogota',
   LUGAR: 'Medellín · Parque de El Poblado o a domicilio',

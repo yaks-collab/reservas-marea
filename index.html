@@ -201,12 +201,13 @@
           </label>
           <label class="check">
             <input type="checkbox" name="autorizo" required>
-            <span>Autorizo a Marea Entrenamiento a guardar mi nombre, correo y celular solo para gestionar esta reserva y contactarme sobre ella, según la Ley 1581 de 2012 (habeas data). Puedo pedir que los borren escribiendo a yaku.kolke@gmail.com.</span>
+            <span>Autorizo a Marea Entrenamiento a guardar mi nombre, correo y celular solo para gestionar esta reserva y contactarme sobre ella, según la Ley 1581 de 2012 (habeas data). Puedo pedir que los borren escribiendo a yaku.colque@gmail.com.</span>
           </label>
 
           <div class="resumen" id="resumen" hidden></div>
           <p class="aviso error" id="error" role="alert" hidden></p>
           <button class="btn" type="submit" id="enviar">Solicitar reserva</button>
+          <p class="ayuda" style="text-align:center">Se guarda tu solicitud y se abre WhatsApp con el mensaje listo para Yaku.</p>
         </form>
       </section>
     </div>
@@ -216,8 +217,9 @@
       <h2>¡Solicitud enviada!</h2>
       <p>Te llegará un correo cuando Yaku la confirme.</p>
       <p class="resumen" id="exito-resumen"></p>
+      <p><b>Último paso:</b> dale “Enviar” en WhatsApp para que Yaku la vea de una. Si no se abrió solo, usa este botón:</p>
       <div class="acciones">
-        <a class="btn whatsapp" id="btn-whatsapp" target="_blank" rel="noopener" style="text-decoration:none">Avisar por WhatsApp</a>
+        <a class="btn whatsapp" id="btn-whatsapp" target="_blank" rel="noopener" style="text-decoration:none">Enviar solicitud por WhatsApp</a>
         <button class="btn secundario" type="button" id="otra">Hacer otra reserva</button>
       </div>
     </section>
@@ -458,6 +460,9 @@
       if (!f.autorizo.checked) return mostrarError("Para continuar, marca la autorización de datos.");
       if (!sb) return mostrarError("Esta es una vista previa: la base de datos todavía no está conectada.");
 
+      // Abrimos la pestaña de WhatsApp YA (durante el clic), porque si la abrimos
+      // después de esperar a la base de datos, el celular la bloquea como "ventana emergente".
+      const ventanaWa = window.open("", "_blank");
       const btn = $("enviar");
       btn.disabled = true;
       btn.textContent = "Enviando…";
@@ -474,16 +479,17 @@
       btn.textContent = "Solicitar reserva";
 
       if (error) {
+        ventanaWa?.close();
         mostrarError(error.message || "No se pudo enviar. Intenta de nuevo.");
         await cargarOcupadas();
         pintarHoras();
         actualizarResumen();
         return;
       }
-      mostrarExito(id, datos);
+      mostrarExito(id, datos, ventanaWa);
     });
 
-    function mostrarExito(id, datos) {
+    function mostrarExito(id, datos, ventanaWa) {
       const resumen = textoResumen();
       $("exito-resumen").textContent = `Solicitud #${id} · ${resumen}`;
       const msg =
@@ -494,7 +500,9 @@
         `Hora: ${etiquetaHora(sel.hora)}\n` +
         `Nombre: ${datos.nombre}\n` +
         `Celular: ${datos.telefono}`;
-      $("btn-whatsapp").href = `https://wa.me/${NEGOCIO.whatsapp}?text=${encodeURIComponent(msg)}`;
+      const urlWa = `https://wa.me/${NEGOCIO.whatsapp}?text=${encodeURIComponent(msg)}`;
+      $("btn-whatsapp").href = urlWa;
+      if (ventanaWa && !ventanaWa.closed) ventanaWa.location.href = urlWa;
       $("reserva").hidden = true;
       $("exito").hidden = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
