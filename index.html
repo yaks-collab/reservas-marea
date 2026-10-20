@@ -190,18 +190,18 @@
           <label>Nombre completo
             <input type="text" name="nombre" autocomplete="name" required maxlength="100">
           </label>
-          <label>Correo <small>Ahí te llega la confirmación y la invitación al calendario</small>
-            <input type="email" name="email" autocomplete="email" required maxlength="200">
+          <label>Celular / WhatsApp <small>Con código de país. Por aquí te confirma Yaku la reserva</small>
+            <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" required maxlength="30" placeholder="+57 300 123 4567">
           </label>
-          <label>Celular <small>Para avisarte si hay algún cambio</small>
-            <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" required maxlength="30" placeholder="300 123 4567">
+          <label>Correo <small>(opcional)</small>
+            <input type="email" name="email" autocomplete="email" maxlength="200">
           </label>
           <label>Nota <small>(opcional) Objetivo, lesiones, dirección si es a domicilio…</small>
             <textarea name="nota" maxlength="500"></textarea>
           </label>
           <label class="check">
             <input type="checkbox" name="autorizo" required>
-            <span>Autorizo a Marea Entrenamiento a guardar mi nombre, correo y celular solo para gestionar esta reserva y contactarme sobre ella, según la Ley 1581 de 2012 (habeas data). Puedo pedir que los borren escribiendo a yaku.colque@gmail.com.</span>
+            <span>Autorizo a Marea Entrenamiento a guardar mi nombre y celular (y correo, si lo escribo) solo para gestionar esta reserva y contactarme por WhatsApp sobre ella, según la Ley 1581 de 2012 (habeas data). Puedo pedir que los borren escribiendo a yaku.colque@gmail.com.</span>
           </label>
 
           <div class="resumen" id="resumen" hidden></div>
@@ -215,7 +215,7 @@
     <section class="paso exito" id="exito" hidden>
       <div class="icono">✅</div>
       <h2>¡Solicitud enviada!</h2>
-      <p>Te llegará un correo cuando Yaku la confirme.</p>
+      <p>Yaku te confirmará por WhatsApp.</p>
       <p class="resumen" id="exito-resumen"></p>
       <p><b>Último paso:</b> dale “Enviar” en WhatsApp para que Yaku la vea de una. Si no se abrió solo, usa este botón:</p>
       <div class="acciones">
@@ -455,8 +455,8 @@
       };
       if (!sel.sesion || !sel.dia || sel.hora == null) return mostrarError("Elige la sesión, el día y la hora.");
       if (datos.nombre.length < 2) return mostrarError("Escribe tu nombre.");
-      if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(datos.email)) return mostrarError("Revisa tu correo: ahí te llega la confirmación.");
-      if (datos.telefono.replace(/\D/g, "").length < 7) return mostrarError("Escribe tu número de celular.");
+      if (datos.telefono.replace(/\D/g, "").length < 7) return mostrarError("Escribe tu número de celular (WhatsApp).");
+      if (datos.email && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(datos.email)) return mostrarError("Revisa tu correo, o déjalo vacío.");
       if (!f.autorizo.checked) return mostrarError("Para continuar, marca la autorización de datos.");
       if (!sb) return mostrarError("Esta es una vista previa: la base de datos todavía no está conectada.");
 

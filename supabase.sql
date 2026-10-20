@@ -40,7 +40,7 @@ create table if not exists public.reservas (
   inicio        timestamptz not null,
   fin           timestamptz not null,
   nombre        text not null,
-  email         text not null,
+  email         text not null default '',   -- opcional
   telefono      text not null default '',
   nota          text not null default '',
   estado        text not null default 'pendiente'
@@ -182,19 +182,20 @@ begin
   if char_length(v_nombre) not between 2 and 100 then
     raise exception 'Escribe tu nombre';
   end if;
-  if v_email !~ '^[^@\s]+@[^@\s]+\.[a-z]{2,}$' or char_length(v_email) > 200 then
+  -- El correo es opcional (todo se coordina por WhatsApp)
+  if v_email <> '' and (v_email !~ '^[^@\s]+@[^@\s]+\.[a-z]{2,}$' or char_length(v_email) > 200) then
     raise exception 'Revisa tu correo: no parece válido';
   end if;
-  if char_length(v_telefono) > 30 then
-    raise exception 'Revisa tu celular';
+  if char_length(regexp_replace(v_telefono, '\D', '', 'g')) < 7 or char_length(v_telefono) > 30 then
+    raise exception 'Escribe tu número de celular (WhatsApp)';
   end if;
   if char_length(v_nota) > 500 then
     raise exception 'La nota es muy larga (máximo 500 caracteres)';
   end if;
 
-  -- Freno contra spam: máximo 3 solicitudes pendientes por correo
+  -- Freno contra spam: máximo 3 solicitudes pendientes por celular
   if (select count(*) from public.reservas
-      where email = v_email and estado = 'pendiente' and inicio > now()) >= 3 then
+      where telefono = v_telefono and estado = 'pendiente' and inicio > now()) >= 3 then
     raise exception 'Ya tienes 3 solicitudes pendientes. Espera la confirmación';
   end if;
 

@@ -140,6 +140,9 @@
     const SUPABASE_KEY = "sb_publishable_uUSxW_vjdkPK5hHijLHYqQ_-5RCiL9B";
     const ZONA = "America/Bogota";
     const TITULO = "Panel · Marea Entrenamiento";
+    const NEGOCIO = "Marea Entrenamiento";
+    const LUGAR = "Medellín · Parque de El Poblado o a domicilio";
+    const URL_SITIO = "https://yaks-collab.github.io/reservas-marea/";
 
     const sb = SUPABASE_URL && SUPABASE_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -253,7 +256,7 @@
             <p class="cuando">${esc(cuando(r))}</p>
             <dl>
               <dt>Nombre</dt><dd>${esc(r.nombre)}</dd>
-              <dt>Correo</dt><dd><a href="mailto:${esc(r.email)}">${esc(r.email)}</a></dd>
+              ${r.email ? `<dt>Correo</dt><dd><a href="mailto:${esc(r.email)}">${esc(r.email)}</a></dd>` : ""}
               <dt>Celular</dt><dd>${wa ? `<a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">${esc(r.telefono)}</a>` : "—"}</dd>
               ${r.nota ? `<dt>Nota</dt><dd>${esc(r.nota)}</dd>` : ""}
               <dt>Solicitud</dt><dd>#${esc(r.id)}</dd>
@@ -273,10 +276,22 @@
 
     // ---------- Aceptar / Rechazar / Cancelar ----------
     const TEXTOS = {
-      aceptada:  { titulo: "¿Aceptar esta reserva?",  texto: "Se crea el evento en tu Google Calendar y al cliente le llega la invitación.", boton: "Sí, aceptar", clase: "btn verde" },
-      rechazada: { titulo: "¿Rechazar esta solicitud?", texto: "Al cliente le llega un correo para que elija otra hora.", boton: "Sí, rechazar", clase: "btn rojo" },
-      cancelada: { titulo: "¿Cancelar esta sesión?", texto: "Se borra el evento de tu calendario y al cliente le llega un correo.", boton: "Sí, cancelar", clase: "btn rojo" }
+      aceptada:  { titulo: "¿Aceptar esta reserva?",  texto: "Se abre WhatsApp con la confirmación lista para el cliente.", boton: "Sí, aceptar", clase: "btn verde" },
+      rechazada: { titulo: "¿Rechazar esta solicitud?", texto: "La hora queda libre y se abre WhatsApp para pedirle al cliente que elija otra.", boton: "Sí, rechazar", clase: "btn rojo" },
+      cancelada: { titulo: "¿Cancelar esta sesión?", texto: "La hora queda libre y se abre WhatsApp para avisarle al cliente.", boton: "Sí, cancelar", clase: "btn rojo" }
     };
+
+    // Mensaje de WhatsApp para el cliente según la decisión
+    function mensajeCliente(r, estado) {
+      const cuandoTxt = `${fmtFecha.format(new Date(r.inicio))} a las ${fmtHora.format(new Date(r.inicio))}`;
+      if (estado === "aceptada") {
+        return `¡Hola ${r.nombre}! Te confirmo tu sesión de ${r.sesion_nombre} el ${cuandoTxt} (hora de Colombia) en ${LUGAR}. ¡Nos vemos! 💪\n— Yaku, ${NEGOCIO}`;
+      }
+      if (estado === "rechazada") {
+        return `Hola ${r.nombre}, gracias por escribir. No puedo atenderte en ${r.sesion_nombre} el ${cuandoTxt}. ¿Eliges otra hora aquí? ${URL_SITIO}\n— Yaku, ${NEGOCIO}`;
+      }
+      return `Hola ${r.nombre}, tu sesión de ${r.sesion_nombre} del ${cuandoTxt} quedó cancelada. Si quieres, reserva otra hora aquí: ${URL_SITIO}\n— Yaku, ${NEGOCIO}`;
+    }
     let pendienteDeConfirmar = null;
 
     $("lista").addEventListener("click", (e) => {
@@ -301,10 +316,19 @@
     $("modal-si").addEventListener("click", async () => {
       if (!pendienteDeConfirmar) return;
       const { id, estado } = pendienteDeConfirmar;
+      const r = reservas.find((x) => x.id === id);
+      const wa = numeroWhatsApp(r?.telefono);
+      // Abrimos la pestaña durante el clic para que el navegador no la bloquee
+      const ventanaWa = wa ? window.open("", "_blank") : null;
       $("modal-si").disabled = true;
       const { error } = await sb.from("reservas").update({ estado }).eq("id", id);
       $("modal-si").disabled = false;
       cerrarModal();
+      if (!error && ventanaWa) {
+        ventanaWa.location.href = `https://wa.me/${wa}?text=${encodeURIComponent(mensajeCliente(r, estado))}`;
+      } else {
+        ventanaWa?.close();
+      }
       if (error) {
         const msg = error.code === "23P01" ? "Esa hora se cruza con otra reserva activa." : error.message;
         $("error-panel").textContent = "No se pudo cambiar: " + msg;
